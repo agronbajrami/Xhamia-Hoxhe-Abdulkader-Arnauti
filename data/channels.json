@@ -1,0 +1,28 @@
+{
+    "channels": [
+        {
+            "id": "sadullah_bajrami",
+            "name": "Hoxhë Sadullah Bajrami",
+            "description": "Official channel of Hoxhë Sadullah Bajrami",
+            "channelUrl": "https://www.youtube.com/@hoxhesadullahbajrami1",
+            "thumbnail": "https://ui-avatars.com/api/?name=Sadullah+Bajrami&background=006233&color=fff&size=200",
+            "featured": true
+        },
+        {
+            "id": "enis_rama",
+            "name": "Hoxhë Enis Rama",
+            "description": "Official channel of Hoxhë Enis Rama",
+            "channelUrl": "https://www.youtube.com/@HoxheEnisRama",
+            "thumbnail": "https://ui-avatars.com/api/?name=Enis+Rama&background=D4AF37&color=fff&size=200",
+            "featured": true
+        },
+        {
+            "id": "mustafa_terniqi",
+            "name": "Hoxhë Mustafa Tërniqi",
+            "description": "Official channel of Hoxhë Mustafa Tërniqi",
+            "channelUrl": "https://www.youtube.com/@HoxheMustafaTerniqi",
+            "thumbnail": "https://ui-avatars.com/api/?name=Mustafa+Terniqi&background=0D9488&color=fff&size=200",
+            "featured": true
+        }
+    ]
+}

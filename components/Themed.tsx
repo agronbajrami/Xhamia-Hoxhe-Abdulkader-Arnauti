@@ -1,12 +1,9 @@
 /**
- * Learn more about Light and Dark modes:
- * https://docs.expo.io/guides/color-schemes/
+ * Themed components for TAKVIM app
  */
 
-import { Text as DefaultText, View as DefaultView } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from './useColorScheme';
+import { COLORS } from '@/constants/Colors';
+import { ColorValue, Text as DefaultText, View as DefaultView } from 'react-native';
 
 type ThemeProps = {
   lightColor?: string;
@@ -16,17 +13,24 @@ type ThemeProps = {
 export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = ThemeProps & DefaultView['props'];
 
+// Define which COLORS keys are single colors (not arrays)
+type SingleColorKeys = 'primary' | 'primaryLight' | 'primaryDark' | 'secondary' | 'accent' | 'accentLight' |
+  'white' | 'gold' | 'goldLight' | 'goldDark' | 'background' | 'backgroundSecondary' | 'backgroundGradientStart' |
+  'backgroundGradientEnd' | 'card' | 'cardLight' | 'cardHover' | 'teal' | 'purple' | 'blue' | 'orange' |
+  'text' | 'textSecondary' | 'textMuted' | 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'maghrib' | 'isha' |
+  'success' | 'warning' | 'error';
+
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
-) {
-  const theme = useColorScheme() ?? 'light';
-  const colorFromProps = props[theme];
+  colorName: SingleColorKeys
+): ColorValue {
+  // Always use dark theme for this app
+  const colorFromProps = props.dark;
 
   if (colorFromProps) {
     return colorFromProps;
   } else {
-    return Colors[theme][colorName];
+    return COLORS[colorName] as ColorValue;
   }
 }
 
