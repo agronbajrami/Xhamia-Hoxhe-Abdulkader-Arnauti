@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { Reminder } from './storage';
+import { fetchPrayerTimes, parseTimeToDate, PrayerName } from './prayerApi';
+import { Reminder, getSettings, getSelectedCity } from './storage';
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -168,6 +169,45 @@ export async function schedulePrayerNotification(
     }
 }
 
+export async function reschedulePrayerNotifications(): Promise<void> {
+    const allNotifications = await getScheduledNotifications();
+    for (const notif of allNotifications) {
+        if (notif.content.data?.type === 'prayer') {
+            await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+        }
+    }
+
+    const settings = await getSettings();
+    if (!settings.notificationsEnabled) return;
+
+    const city = await getSelectedCity();
+    const now = new Date();
+    const prayerNames: PrayerName[] = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        const targetDate = new Date();
+        targetDate.setDate(now.getDate() + dayOffset);
+
+        try {
+            const prayerTimes = await fetchPrayerTimes(city.latitude, city.longitude, targetDate);
+
+            for (const prayer of prayerNames) {
+                if (settings.prayerNotifications[prayer]) {
+                    const timeString = prayerTimes.timings[prayer];
+                    const prayerTime = parseTimeToDate(timeString);
+                    prayerTime.setFullYear(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+
+                    if (prayerTime > now) {
+                        await schedulePrayerNotification(prayer, prayerTime, city.name);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching prayer times for scheduling:', error);
+        }
+    }
+}
+
 export default {
     requestPermissions,
     scheduleReminderNotification,
@@ -175,4 +215,5 @@ export default {
     cancelAllNotifications,
     getScheduledNotifications,
     schedulePrayerNotification,
+    reschedulePrayerNotifications,
 };

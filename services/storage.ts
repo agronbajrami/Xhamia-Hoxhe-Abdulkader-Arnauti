@@ -31,6 +31,14 @@ export interface Settings {
     showSunrise: boolean;
     notificationsEnabled: boolean;
     adhkarNotifications: boolean;
+    prayerNotifications: {
+        Fajr: boolean;
+        Sunrise: boolean;
+        Dhuhr: boolean;
+        Asr: boolean;
+        Maghrib: boolean;
+        Isha: boolean;
+    };
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -38,6 +46,14 @@ const DEFAULT_SETTINGS: Settings = {
     showSunrise: true,
     notificationsEnabled: true,
     adhkarNotifications: false,
+    prayerNotifications: {
+        Fajr: true,
+        Sunrise: true,
+        Dhuhr: true,
+        Asr: true,
+        Maghrib: true,
+        Isha: true,
+    },
 };
 
 // City Storage

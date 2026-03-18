@@ -23,22 +23,30 @@ import {
     cancelNotification,
     requestPermissions,
     scheduleReminderNotification,
+    reschedulePrayerNotifications,
 } from '@/services/notifications';
+import { fetchPrayerTimes, PrayerName } from '@/services/prayerApi';
 import {
     Reminder,
+    Settings,
     addReminder,
     deleteReminder,
     generateId,
     getReminders,
     updateReminder,
+    getSettings,
+    saveSettings,
+    getSelectedCity,
 } from '@/services/storage';
 
 type RepeatOption = 'none' | 'daily' | 'weekly';
 
 export default function RemindersScreen() {
-    const { t } = useLanguage();
+    const { t, getPrayerName } = useLanguage();
     const { colors } = useTheme();
     const [reminders, setReminders] = useState<Reminder[]>([]);
+    const [settings, setSettings] = useState<Settings | null>(null);
+    const [prayerTimes, setPrayerTimes] = useState<any>(null);
     const [showModal, setShowModal] = useState(false);
     const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
     const [permissionGranted, setPermissionGranted] = useState(false);
@@ -65,10 +73,22 @@ export default function RemindersScreen() {
     };
 
     const loadReminders = async () => {
-        const data = await getReminders();
+        const [data, userSettings, city] = await Promise.all([
+            getReminders(),
+            getSettings(),
+            getSelectedCity()
+        ]);
         // Sort by time
         data.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
         setReminders(data);
+        setSettings(userSettings);
+
+        try {
+            const times = await fetchPrayerTimes(city.latitude, city.longitude, new Date());
+            setPrayerTimes(times);
+        } catch (error) {
+            console.error('Error fetching prayer times', error);
+        }
     };
 
     const openAddModal = () => {
@@ -185,6 +205,27 @@ export default function RemindersScreen() {
         }
     };
 
+    const handlePrayerToggle = async (prayer: PrayerName, newValue: boolean) => {
+        if (!settings) return;
+
+        const updatedSettings = {
+            ...settings,
+            prayerNotifications: {
+                ...settings.prayerNotifications,
+                [prayer]: newValue,
+            },
+        };
+
+        setSettings(updatedSettings);
+        await saveSettings(updatedSettings);
+
+        if (permissionGranted) {
+           await reschedulePrayerNotifications();
+        } else {
+           Alert.alert(t.error || 'Gabim', 'Ju lutemi lejoni njoftimet nga cilësimet.');
+        }
+    };
+
     const formatTime = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -266,60 +307,110 @@ export default function RemindersScreen() {
             </TouchableOpacity>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {reminders.length === 0 ? (
-                    <View style={styles.emptyState}>
-                        <Ionicons name="notifications-off-outline" size={64} color={colors.textMuted} />
-                        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t.noReminders}</Text>
-                        <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>{t.tapPlusToAddReminder}</Text>
-                    </View>
-                ) : (
-                    reminders.map((reminder) => (
-                        <TouchableOpacity
-                            key={reminder.id}
-                            style={[styles.reminderCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
-                            onPress={() => openEditModal(reminder)}
-                            activeOpacity={0.7}
-                        >
-                            <View style={styles.reminderInfo}>
-                                <View style={styles.reminderHeader}>
-                                    <Ionicons
-                                        name="notifications-circle"
-                                        size={24}
-                                        color={reminder.enabled ? colors.brandGold : colors.textMuted}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.reminderTitle,
-                                            { color: colors.text },
-                                            !reminder.enabled && { color: colors.textMuted, textDecorationLine: 'line-through' },
-                                        ]}
-                                        numberOfLines={1}
-                                    >
-                                        {reminder.title}
-                                    </Text>
-                                </View>
-                                <View style={styles.timeInfo}>
-                                    <Text style={[styles.timeText, { color: colors.textSecondary }]}>{formatTime(reminder.time)}</Text>
-                                    {reminder.repeat !== 'none' && (
-                                        <View style={[styles.repeatBadge, { backgroundColor: colors.inputBg }]}>
-                                            <Ionicons name="repeat" size={12} color={colors.textMuted} />
-                                            <Text style={[styles.repeatText, { color: colors.textMuted }]}>
-                                                {reminder.repeat === 'daily' ? t.daily : reminder.repeat === 'weekly' ? t.weekly : t.none}
+                {/* Prayer Times Section */}
+                {settings && prayerTimes && (
+                    <View style={styles.sectionContainer}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Koha e Namazit (Njoftime)</Text>
+                        {(['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'] as PrayerName[]).map((prayer) => {
+                            const prayerInfo = getPrayerName(prayer);
+                            return (
+                                <View
+                                    key={prayer}
+                                    style={[styles.reminderCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                                >
+                                    <View style={styles.reminderInfo}>
+                                        <View style={styles.reminderHeader}>
+                                            <Ionicons
+                                                name="time-outline"
+                                                size={24}
+                                                color={settings.prayerNotifications[prayer] ? colors.brandGold : colors.textMuted}
+                                            />
+                                            <Text
+                                                style={[
+                                                    styles.reminderTitle,
+                                                    { color: colors.text },
+                                                    !settings.prayerNotifications[prayer] && { color: colors.textMuted },
+                                                ]}
+                                            >
+                                                {prayerInfo.name} {prayerInfo.arabic && `- ${prayerInfo.arabic}`}
                                             </Text>
                                         </View>
-                                    )}
-                                </View>
-                            </View>
+                                        <View style={styles.timeInfo}>
+                                            <Text style={[styles.timeText, { color: colors.textSecondary }]}>
+                                                Sot në {prayerTimes.timings[prayer]}
+                                            </Text>
+                                        </View>
+                                    </View>
 
-                            <Switch
-                                value={reminder.enabled}
-                                onValueChange={(val) => handleToggle(reminder, val)}
-                                trackColor={{ false: colors.separator, true: `${colors.brandGold}50` }}
-                                thumbColor={reminder.enabled ? colors.brandGold : colors.textMuted}
-                            />
-                        </TouchableOpacity>
-                    ))
+                                    <Switch
+                                        value={settings.prayerNotifications[prayer]}
+                                        onValueChange={(val) => handlePrayerToggle(prayer, val)}
+                                        trackColor={{ false: colors.separator, true: `${colors.brandGold}50` }}
+                                        thumbColor={settings.prayerNotifications[prayer] ? colors.brandGold : colors.textMuted}
+                                    />
+                                </View>
+                            );
+                        })}
+                    </View>
                 )}
+
+                <View style={styles.sectionContainer}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Rikujtuesit Personalë</Text>
+                    {reminders.length === 0 ? (
+                        <View style={styles.emptyState}>
+                            <Ionicons name="notifications-off-outline" size={64} color={colors.textMuted} />
+                            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t.noReminders}</Text>
+                            <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>{t.tapPlusToAddReminder}</Text>
+                        </View>
+                    ) : (
+                        reminders.map((reminder) => (
+                            <TouchableOpacity
+                                key={reminder.id}
+                                style={[styles.reminderCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                                onPress={() => openEditModal(reminder)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={styles.reminderInfo}>
+                                    <View style={styles.reminderHeader}>
+                                        <Ionicons
+                                            name="notifications-circle"
+                                            size={24}
+                                            color={reminder.enabled ? colors.brandGold : colors.textMuted}
+                                        />
+                                        <Text
+                                            style={[
+                                                styles.reminderTitle,
+                                                { color: colors.text },
+                                                !reminder.enabled && { color: colors.textMuted, textDecorationLine: 'line-through' },
+                                            ]}
+                                            numberOfLines={1}
+                                        >
+                                            {reminder.title}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.timeInfo}>
+                                        <Text style={[styles.timeText, { color: colors.textSecondary }]}>{formatTime(reminder.time)}</Text>
+                                        {reminder.repeat !== 'none' && (
+                                            <View style={[styles.repeatBadge, { backgroundColor: colors.inputBg }]}>
+                                                <Ionicons name="repeat" size={12} color={colors.textMuted} />
+                                                <Text style={[styles.repeatText, { color: colors.textMuted }]}>
+                                                    {reminder.repeat === 'daily' ? t.daily : reminder.repeat === 'weekly' ? t.weekly : t.none}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+
+                                <Switch
+                                    value={reminder.enabled}
+                                    onValueChange={(val) => handleToggle(reminder, val)}
+                                    trackColor={{ false: colors.separator, true: `${colors.brandGold}50` }}
+                                    thumbColor={reminder.enabled ? colors.brandGold : colors.textMuted}
+                                />
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </View>
             </ScrollView>
 
             {/* Add/Edit Modal */}
@@ -479,6 +570,15 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         fontSize: 13,
         fontWeight: '500',
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        marginLeft: 4,
+    },
+    sectionContainer: {
+        marginBottom: 24,
     },
     fab: {
         position: 'absolute',

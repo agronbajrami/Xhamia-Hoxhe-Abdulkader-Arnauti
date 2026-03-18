@@ -111,7 +111,7 @@ export default function SettingsScreen() {
                 <View style={s.card}>
                     <View style={s.infoRow}>
                         <Ionicons name="information-circle-outline" size={20} color={colors.textMuted} />
-                        <Text style={s.infoText}>Xhamia AbdulKadër Arnauti</Text>
+                        <Text style={s.infoText}>Hoxhë AbdulKadër Arnauti</Text>
                     </View>
                     <View style={s.divider} />
                     <View style={s.infoRow}>
@@ -168,7 +168,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
             marginBottom: 12,
         },
         card: {
-            backgroundColor: colors.card,
+            // backgroundColor: colors.card,
             borderRadius: 20,
             overflow: 'hidden',
             borderWidth: 1,

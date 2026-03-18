@@ -255,7 +255,7 @@ export const translations: Record<Language, Translations> = {
         qiblaShortcutSubtitle: 'Gjej drejtimin e Kibles',
         donationSubtitle: 'Mbështetni xhaminë me një donacion',
         seeAll: 'Të gjitha',
-        arnautiMosque: 'Xhamia Abdulkadër Arnauti',
+        arnautiMosque: 'Hoxhë Abdulkadër Arnauti',
         january: 'Janar',
         february: 'Shkurt',
         march: 'Mars',
