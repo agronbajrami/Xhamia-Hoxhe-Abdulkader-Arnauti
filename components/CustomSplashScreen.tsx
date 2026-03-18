@@ -128,7 +128,7 @@ export default function CustomSplashScreen({ onFinish }: { onFinish?: () => void
                         },
                     ]}
                 >
-                    <Text style={styles.title}>Hoxhë AbdulKadër</Text>
+                    <Text style={styles.title}>Hoxhë Abdulkadër</Text>
                     <Text style={styles.titleSecond}>Arnauti</Text>
                 </Animated.View>
 

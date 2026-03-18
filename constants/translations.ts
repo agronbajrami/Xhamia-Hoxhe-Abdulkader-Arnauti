@@ -138,7 +138,7 @@ export interface Translations {
 export const translations: Record<Language, Translations> = {
     sq: {
         // App
-        appName: 'Hoxhë AbdulKadër Arnauti',
+        appName: 'Hoxhë Abdulkadër Arnauti',
 
         // Navigation
         home: 'Ballina',

@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
@@ -63,9 +62,9 @@ const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
     const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLng / 2) *
-            Math.sin(dLng / 2);
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
 
     return Math.round(earthRadiusKm * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))));
 };
@@ -107,9 +106,9 @@ export default function QiblaScreen() {
                 previousHeading === null
                     ? normalizeDegrees(nextHeading)
                     : normalizeDegrees(
-                          previousHeading +
-                              getShortestAngle(previousHeading, nextHeading) * HEADING_SMOOTHING
-                      );
+                        previousHeading +
+                        getShortestAngle(previousHeading, nextHeading) * HEADING_SMOOTHING
+                    );
 
             headingRef.current = smoothedHeading;
 
@@ -252,38 +251,12 @@ export default function QiblaScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            let isActive = true;
-
-            const checkCalibrationHint = async () => {
-                try {
-                    const seenCalibrationHint = await AsyncStorage.getItem(QIBLA_CALIBRATION_KEY);
-
-                    if (isActive && !seenCalibrationHint) {
-                        setShowCalibrationModal(true);
-                    }
-                } catch (error) {
-                    if (isActive) {
-                        setShowCalibrationModal(true);
-                    }
-                }
-            };
-
-            checkCalibrationHint();
-
-            return () => {
-                isActive = false;
-            };
+            setShowCalibrationModal(true);
         }, [])
     );
 
-    const closeCalibrationModal = useCallback(async () => {
+    const closeCalibrationModal = useCallback(() => {
         setShowCalibrationModal(false);
-
-        try {
-            await AsyncStorage.setItem(QIBLA_CALIBRATION_KEY, 'true');
-        } catch (error) {
-            console.error('Error saving calibration hint state:', error);
-        }
     }, []);
 
     const animatedGuideStyle = useAnimatedStyle(() => ({
@@ -291,12 +264,12 @@ export default function QiblaScreen() {
     }));
 
     const qiblaValue = useMemo(() => {
-        if (isLoading) {
+        if (isLoading || alignmentDelta === null) {
             return t.loading;
         }
 
-        return `${qiblaDirection}° ${t.toMecca}`;
-    }, [isLoading, qiblaDirection, t]);
+        return `${alignmentDelta}° ${t.toMecca}`;
+    }, [isLoading, alignmentDelta, t]);
 
     const distanceValue = useMemo(() => {
         if (isLoading || distance === null) {
@@ -428,7 +401,7 @@ export default function QiblaScreen() {
 
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <View
+                    {/* <View
                         style={[
                             styles.headerBadge,
                             {
@@ -439,9 +412,9 @@ export default function QiblaScreen() {
                     >
                         <Ionicons name="navigate" size={14} color={colors.brandGold} />
                         <Text style={[styles.headerBadgeText, { color: colors.brandGold }]}>{t.qibla}</Text>
-                    </View>
-                    <Text style={[styles.title, { color: colors.text }]}>{t.qiblaDirection}</Text>
-                    <Text style={[styles.subtitle, { color: colors.textMuted }]}>{statusText}</Text>
+                    </View> */}
+                    {/* <Text style={[styles.title, { color: colors.text }]}>{t.qiblaDirection}</Text> */}
+                    {/* <Text style={[styles.subtitle, { color: colors.textMuted }]}>{statusText}</Text> */}
                 </View>
 
                 <LinearGradient

@@ -8,10 +8,8 @@ import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
 import CustomSplashScreen from '@/components/CustomSplashScreen';
-import WelcomeModal from '@/components/WelcomeModal';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { WelcomeProvider } from '@/contexts/WelcomeContext';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -77,21 +75,18 @@ function RootLayoutNav() {
 
   return (
     <NavThemeProvider value={navTheme}>
-      <WelcomeProvider>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: 'modal',
-              headerStyle: { backgroundColor: colors.card },
-              headerTintColor: colors.text,
-            }}
-          />
-        </Stack>
-        <WelcomeModal />
-      </WelcomeProvider>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="modal"
+          options={{
+            presentation: 'modal',
+            headerStyle: { backgroundColor: colors.card },
+            headerTintColor: colors.text,
+          }}
+        />
+      </Stack>
     </NavThemeProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -32,9 +32,10 @@ export default function MenuScreen() {
         {
             id: 'donacion',
             title: t.donation,
-            icon: 'heart-outline',
+            icon: 'hand-holding-heart', // Sadaqa icon
+            family: 'FontAwesome5',
             route: 'https://arnauti.org/donacione',
-            color: '#EF4444',
+            color: '#10B981', // Charity green
             description: t.donationSubtitle,
             isExternal: true,
         },
@@ -73,7 +74,11 @@ export default function MenuScreen() {
                         activeOpacity={0.8}
                     >
                         <View style={[styles.iconContainer, { backgroundColor: `${item.color}15` }]}>
-                            <Ionicons name={item.icon as any} size={32} color={item.color} />
+                            {item.family === 'FontAwesome5' ? (
+                                <FontAwesome5 name={item.icon as any} size={28} color={item.color} />
+                            ) : (
+                                <Ionicons name={item.icon as any} size={32} color={item.color} />
+                            )}
                         </View>
                         <View style={styles.textContainer}>
                             <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
