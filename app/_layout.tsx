@@ -4,7 +4,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import CustomSplashScreen from '@/components/CustomSplashScreen';
@@ -61,6 +63,17 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      try {
+        NavigationBar.setBackgroundColorAsync(colors.tabBar);
+        NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+      } catch (e) {
+        console.warn('NavigationBar configuration failed', e);
+      }
+    }
+  }, [colors.tabBar, isDark]);
 
   const navTheme = {
     ...(isDark ? DarkTheme : DefaultTheme),
