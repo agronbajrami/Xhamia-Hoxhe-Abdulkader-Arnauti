@@ -51,6 +51,21 @@
           "color": "#006233",
           "sounds": []
         }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "PrayerWidget",
+              "label": "Takvim Prayers",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "description": "Shows upcoming prayer times",
+              "previewImage": "./assets/images/adaptive-icon.png"
+            }
+          ]
+        }
       ]
     ],
     "experiments": {

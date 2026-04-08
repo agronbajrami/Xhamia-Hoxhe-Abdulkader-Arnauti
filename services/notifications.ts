@@ -1,11 +1,11 @@
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import type * as NotificationsType from 'expo-notifications';
 import { Platform } from 'react-native';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { fetchPrayerTimes, parseTimeToDate, PrayerName } from './prayerApi';
-import { Reminder, getSettings, getSelectedCity } from './storage';
+import { getSelectedCity, getSettings, Reminder } from './storage';
 
-const isExpoGo = 
-    Platform.OS === 'android' && 
+const isExpoGo =
+    Platform.OS === 'android' &&
     (Constants.appOwnership === 'expo' || Constants.executionEnvironment === ExecutionEnvironment.StoreClient);
 
 let Notifications: typeof NotificationsType | any;
@@ -13,13 +13,13 @@ let Notifications: typeof NotificationsType | any;
 if (isExpoGo) {
     console.warn('Skipping expo-notifications load in Expo Go on Android (SDK 53+) to avoid crash/redbox.');
     Notifications = {
-        setNotificationHandler: () => {},
+        setNotificationHandler: () => { },
         getPermissionsAsync: async () => ({ status: 'undetermined' }),
         requestPermissionsAsync: async () => ({ status: 'denied' }),
-        setNotificationChannelAsync: async () => {},
+        setNotificationChannelAsync: async () => { },
         scheduleNotificationAsync: async () => 'mock-id',
-        cancelScheduledNotificationAsync: async () => {},
-        cancelAllScheduledNotificationsAsync: async () => {},
+        cancelScheduledNotificationAsync: async () => { },
+        cancelAllScheduledNotificationsAsync: async () => { },
         getAllScheduledNotificationsAsync: async () => [],
         SchedulableTriggerInputTypes: { DAILY: 'daily', WEEKLY: 'weekly', DATE: 'date' },
         AndroidImportance: { HIGH: 4, DEFAULT: 3, LOW: 2, MIN: 1, NONE: 0 }
@@ -40,13 +40,13 @@ if (isExpoGo) {
     } catch (error) {
         console.warn('Fallback mock initialized for Notifications.', error);
         Notifications = {
-            setNotificationHandler: () => {},
+            setNotificationHandler: () => { },
             getPermissionsAsync: async () => ({ status: 'undetermined' }),
             requestPermissionsAsync: async () => ({ status: 'denied' }),
-            setNotificationChannelAsync: async () => {},
+            setNotificationChannelAsync: async () => { },
             scheduleNotificationAsync: async () => 'mock-id',
-            cancelScheduledNotificationAsync: async () => {},
-            cancelAllScheduledNotificationsAsync: async () => {},
+            cancelScheduledNotificationAsync: async () => { },
+            cancelAllScheduledNotificationsAsync: async () => { },
             getAllScheduledNotificationsAsync: async () => [],
             SchedulableTriggerInputTypes: { DAILY: 'daily', WEEKLY: 'weekly', DATE: 'date' },
             AndroidImportance: { HIGH: 4, DEFAULT: 3, LOW: 2, MIN: 1, NONE: 0 }
@@ -131,7 +131,7 @@ export async function scheduleReminderNotification(reminder: Reminder): Promise<
     try {
         const notificationId = await Notifications.scheduleNotificationAsync({
             content: {
-                title: 'TAKVIM Reminder',
+                title: 'Xhamia Hoxhë Abdulkadër Arnauti',
                 body: reminder.title,
                 data: { reminderId: reminder.id },
                 sound: true,
