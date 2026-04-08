@@ -1,18 +1,58 @@
-import * as Notifications from 'expo-notifications';
+import type * as NotificationsType from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { fetchPrayerTimes, parseTimeToDate, PrayerName } from './prayerApi';
 import { Reminder, getSettings, getSelectedCity } from './storage';
 
-// Configure notification handler
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-    }),
-});
+const isExpoGo = 
+    Platform.OS === 'android' && 
+    (Constants.appOwnership === 'expo' || Constants.executionEnvironment === ExecutionEnvironment.StoreClient);
+
+let Notifications: typeof NotificationsType | any;
+
+if (isExpoGo) {
+    console.warn('Skipping expo-notifications load in Expo Go on Android (SDK 53+) to avoid crash/redbox.');
+    Notifications = {
+        setNotificationHandler: () => {},
+        getPermissionsAsync: async () => ({ status: 'undetermined' }),
+        requestPermissionsAsync: async () => ({ status: 'denied' }),
+        setNotificationChannelAsync: async () => {},
+        scheduleNotificationAsync: async () => 'mock-id',
+        cancelScheduledNotificationAsync: async () => {},
+        cancelAllScheduledNotificationsAsync: async () => {},
+        getAllScheduledNotificationsAsync: async () => [],
+        SchedulableTriggerInputTypes: { DAILY: 'daily', WEEKLY: 'weekly', DATE: 'date' },
+        AndroidImportance: { HIGH: 4, DEFAULT: 3, LOW: 2, MIN: 1, NONE: 0 }
+    };
+} else {
+    try {
+        Notifications = require('expo-notifications');
+        // Configure notification handler
+        Notifications.setNotificationHandler({
+            handleNotification: async () => ({
+                shouldShowAlert: true,
+                shouldPlaySound: true,
+                shouldSetBadge: false,
+                shouldShowBanner: true,
+                shouldShowList: true,
+            }),
+        });
+    } catch (error) {
+        console.warn('Fallback mock initialized for Notifications.', error);
+        Notifications = {
+            setNotificationHandler: () => {},
+            getPermissionsAsync: async () => ({ status: 'undetermined' }),
+            requestPermissionsAsync: async () => ({ status: 'denied' }),
+            setNotificationChannelAsync: async () => {},
+            scheduleNotificationAsync: async () => 'mock-id',
+            cancelScheduledNotificationAsync: async () => {},
+            cancelAllScheduledNotificationsAsync: async () => {},
+            getAllScheduledNotificationsAsync: async () => [],
+            SchedulableTriggerInputTypes: { DAILY: 'daily', WEEKLY: 'weekly', DATE: 'date' },
+            AndroidImportance: { HIGH: 4, DEFAULT: 3, LOW: 2, MIN: 1, NONE: 0 }
+        };
+    }
+}
 
 /**
  * Request notification permissions
@@ -66,7 +106,7 @@ export async function scheduleReminderNotification(reminder: Reminder): Promise<
         return null;
     }
 
-    let trigger: Notifications.NotificationTriggerInput;
+    let trigger: NotificationsType.NotificationTriggerInput;
 
     if (reminder.repeat === 'daily') {
         trigger = {
@@ -131,7 +171,7 @@ export async function cancelAllNotifications(): Promise<void> {
 /**
  * Get all scheduled notifications
  */
-export async function getScheduledNotifications(): Promise<Notifications.NotificationRequest[]> {
+export async function getScheduledNotifications(): Promise<NotificationsType.NotificationRequest[]> {
     try {
         return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {
