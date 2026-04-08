@@ -36,6 +36,7 @@ import {
   PrayerTimesResponse,
 } from "@/services/prayerApi";
 import { getSelectedCity, setSelectedCity } from "@/services/storage";
+import { syncPrayerWidget } from "@/services/widgetBridge";
 
 const { width } = Dimensions.get("window");
 
@@ -231,6 +232,8 @@ export default function PrayerTimesScreen() {
         selectedCity.longitude,
       );
       setPrayerData(data);
+      // Sync data to home screen widgets
+      syncPrayerWidget().catch(() => {});
     } catch (error) {
       console.error("Error loading prayer times:", error);
     } finally {
