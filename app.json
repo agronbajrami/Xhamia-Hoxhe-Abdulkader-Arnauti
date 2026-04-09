@@ -59,10 +59,11 @@
             {
               "name": "PrayerWidget",
               "label": "Takvim Prayers",
-              "minWidth": "250dp",
-              "minHeight": "110dp",
-              "description": "Shows upcoming prayer times",
-              "previewImage": "./assets/images/adaptive-icon.png"
+              "minWidth": "320dp",
+              "minHeight": "200dp",
+              "description": "Shows daily prayer times",
+              "previewImage": "./assets/images/adaptive-icon.png",
+              "resizeMode": "vertical"
             }
           ]
         }

@@ -20,7 +20,7 @@ struct Provider: TimelineProvider {
             cityName: "Shkup",
             prayers: [
                 PrayerTime(name: "Fajr", time: "04:30"),
-                PrayerTime(name: "Sunrise", time: "06:05"),
+                PrayerTime(name: "Lindja", time: "06:05"),
                 PrayerTime(name: "Dhuhr", time: "12:45"),
                 PrayerTime(name: "Asr", time: "16:15"),
                 PrayerTime(name: "Maghrib", time: "19:30"),
@@ -36,7 +36,6 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<PrayerEntry>) -> Void) {
         let entry = loadPrayerEntry()
-        // Refresh every 30 minutes
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         completion(timeline)
@@ -63,85 +62,118 @@ struct PrayerEntry: TimelineEntry {
     let prayers: [PrayerTime]
 }
 
+// ── Reusable prayer cell ──
+struct PrayerCell: View {
+    let name: String
+    let time: String
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(name)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(Color.white.opacity(0.5))
+            Text(cleanTime(time))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(red: 0.051, green: 0.161, blue: 0.251))
+        )
+    }
+
+    private func cleanTime(_ raw: String) -> String {
+        raw.replacingOccurrences(of: #"\s*\(.*\)"#, with: "", options: .regularExpression)
+    }
+}
+
 struct PrayerWidgetEntryView: View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var family
 
+    private let brandGold = Color(red: 0.831, green: 0.686, blue: 0.216)
+    private let bgColor = Color(red: 0.0, green: 0.102, blue: 0.173)
+    private let cardColor = Color(red: 0.051, green: 0.161, blue: 0.251)
+
     var body: some View {
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.0, green: 0.102, blue: 0.173),
-                    Color(red: 0.039, green: 0.161, blue: 0.251)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            bgColor
 
-            VStack(spacing: 6) {
-                // Header
-                HStack {
-                    Text("🕌")
-                        .font(.system(size: 14))
-                    Text("Takvim")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(red: 0.831, green: 0.686, blue: 0.216))
+            VStack(spacing: 8) {
+                // ── Header ──
+                HStack(spacing: 6) {
+                    // Logo placeholder circle
+                    ZStack {
+                        Circle()
+                            .fill(cardColor)
+                            .frame(width: 26, height: 26)
+                        Text("🕌")
+                            .font(.system(size: 12))
+                    }
+
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Takvim")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(brandGold)
+                        Text(entry.cityName)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color.white.opacity(0.4))
+                    }
+
                     Spacer()
-                    Text(entry.cityName)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color.white.opacity(0.5))
                 }
-                .padding(.bottom, 2)
 
-                // Divider
+                // ── Divider ──
                 Rectangle()
-                    .fill(Color(red: 0.831, green: 0.686, blue: 0.216).opacity(0.3))
+                    .fill(brandGold.opacity(0.2))
                     .frame(height: 0.5)
 
-                // Prayer times grid
+                // ── Prayer Grid ──
                 if family == .systemSmall {
-                    // Compact layout for small widget
-                    VStack(spacing: 4) {
+                    // Small: vertical list
+                    VStack(spacing: 3) {
                         ForEach(entry.prayers, id: \.name) { prayer in
                             HStack {
                                 Text(prayer.name)
                                     .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(Color.white.opacity(0.6))
+                                    .foregroundColor(Color.white.opacity(0.55))
                                 Spacer()
-                                Text(prayer.time)
-                                    .font(.system(size: 12, weight: .bold))
+                                Text(cleanTime(prayer.time))
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
                                     .foregroundColor(.white)
                             }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(cardColor)
+                            )
                         }
                     }
                 } else {
-                    // 2-column grid for medium/large
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 6) {
-                        ForEach(entry.prayers, id: \.name) { prayer in
-                            VStack(spacing: 2) {
-                                Text(prayer.name)
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Color.white.opacity(0.5))
-                                Text(prayer.time)
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
+                    // Medium / Large: 3×2 grid
+                    VStack(spacing: 4) {
+                        HStack(spacing: 4) {
+                            ForEach(entry.prayers.prefix(3), id: \.name) { prayer in
+                                PrayerCell(name: prayer.name, time: prayer.time)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.white.opacity(0.06))
-                            )
+                        }
+                        HStack(spacing: 4) {
+                            ForEach(entry.prayers.suffix(3), id: \.name) { prayer in
+                                PrayerCell(name: prayer.name, time: prayer.time)
+                            }
                         }
                     }
                 }
             }
             .padding(12)
         }
+    }
+
+    private func cleanTime(_ raw: String) -> String {
+        raw.replacingOccurrences(of: #"\s*\(.*\)"#, with: "", options: .regularExpression)
     }
 }
 
@@ -166,7 +198,7 @@ struct TakvimPrayerWidget_Previews: PreviewProvider {
             cityName: "Shkup",
             prayers: [
                 PrayerTime(name: "Fajr", time: "04:30"),
-                PrayerTime(name: "Sunrise", time: "06:05"),
+                PrayerTime(name: "Lindja", time: "06:05"),
                 PrayerTime(name: "Dhuhr", time: "12:45"),
                 PrayerTime(name: "Asr", time: "16:15"),
                 PrayerTime(name: "Maghrib", time: "19:30"),
