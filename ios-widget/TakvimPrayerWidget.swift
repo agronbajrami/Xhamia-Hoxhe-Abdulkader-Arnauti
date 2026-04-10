@@ -114,8 +114,8 @@ struct PrayerWidgetEntryView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("Takvim")
-                            .font(.system(size: 14, weight: .bold))
+                        Text("Hoxhë Abdulkadër Arnauti")
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundColor(brandGold)
                         Text(entry.cityName)
                             .font(.system(size: 10, weight: .medium))
