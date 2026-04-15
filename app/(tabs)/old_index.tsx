@@ -1,3 +1,4 @@
+/*
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -134,9 +135,9 @@ export default function PrayerTimesScreen() {
     if (nextPrayer && scrollViewRef.current) {
       const index = prayers.indexOf(nextPrayer.name as PrayerName);
       if (index !== -1) {
-        // Approximate width of each item is 140px + 12px gap = 152px
+        // Approximate width of each item is ~90px + 16px gap = 106px
         // We center it by subtracting half the screen width
-        const itemWidth = 152;
+        const itemWidth = 106;
         const offset = Math.max(
           0,
           index * itemWidth - width / 2 + itemWidth / 2 + 20,
@@ -233,7 +234,7 @@ export default function PrayerTimesScreen() {
       );
       setPrayerData(data);
       // Sync data to home screen widgets
-      syncPrayerWidget().catch(() => { });
+      syncPrayerWidget().catch(() => {});
     } catch (error) {
       console.error("Error loading prayer times:", error);
     } finally {
@@ -307,10 +308,10 @@ export default function PrayerTimesScreen() {
             isDark
               ? ["rgba(0,26,44,0.3)", "rgba(0,26,44,0.6)", colors.background]
               : [
-                "rgba(255,255,255,0.4)",
-                "rgba(255,255,255,0.85)",
-                colors.background,
-              ]
+                  "rgba(255,255,255,0.4)",
+                  "rgba(255,255,255,0.85)",
+                  colors.background,
+                ]
           }
           style={styles.heroGradient}
         >
@@ -388,7 +389,7 @@ export default function PrayerTimesScreen() {
                       styles.cityOptionText,
                       { color: colors.textSecondary },
                       selectedCity.id === city.id &&
-                      styles.cityOptionTextActive,
+                        styles.cityOptionTextActive,
                       selectedCity.id === city.id && {
                         color: colors.brandGold,
                       },
@@ -411,103 +412,125 @@ export default function PrayerTimesScreen() {
           {/* Spacer to push card down */}
           <View style={{ flex: 1 }} />
 
-          {/* Beautiful Circular Logo/Time Container Overlapping */}
-          <View style={styles.circularDialWrapper}>
-            <View style={styles.dialRing}>
-              {/* Logo embedded softly inside the dial */}
-              <Image
-                source={require("@/assets/images/icon-transparent.png")}
-                style={styles.dialLogoInner}
-                resizeMode="contain"
-              />
-
-              <Text style={[styles.dialCityText, { color: 'rgba(255,255,255,0.8)' }]}>
-                {getCityDisplayName(selectedCity, language)}
-              </Text>
-
-              <View style={styles.dialTimeRow}>
-                <Text style={[styles.dialTimeMain, { color: '#FFFFFF' }]}>{hoursMins}</Text>
-                <Text style={[styles.dialTimeSec, { color: 'rgba(255,255,255,0.8)' }]}>{seconds}</Text>
-              </View>
-
-              {nextPrayer && (
-                <Text style={[styles.dialNextLabel, { color: 'rgba(255,255,255,0.8)' }]}>
-                  {language === "sq" ? "deri në" : language === "tr" ? "kadar" : "до"}{" "}
-                  <Text style={[styles.dialNextName, { color: colors.brandGold }]}>
+          {/* Countdown Card (Overlapping) */}
+          {nextPrayer && (
+            <View
+              style={[
+                styles.countdownCard,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.cardBorder,
+                },
+              ]}
+            >
+              <View style={styles.countdownLeft}>
+                <View style={styles.timeRow}>
+                  <Text style={[styles.countdownLarge, { color: colors.text }]}>
+                    {hoursMins}
+                  </Text>
+                  <Text
+                    style={[styles.countdownSmall, { color: colors.textMuted }]}
+                  >
+                    {seconds}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.countdownLabel,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {language === "sq"
+                    ? "deri në"
+                    : language === "tr"
+                      ? "kadar"
+                      : "до"}{" "}
+                  <Text
+                    style={[styles.countdownLabelBold, { color: colors.text }]}
+                  >
                     {getPrayerName(nextPrayer.name).name}
                   </Text>
                 </Text>
-              )}
+              </View>
+
+              <View style={styles.countdownRight}>
+                <Ionicons
+                  name={PRAYER_ICONS[nextPrayer.name as PrayerName] as any}
+                  size={42}
+                  color={
+                    PRAYER_COLORS[nextPrayer.name as PrayerName] ||
+                    colors.brandGold
+                  }
+                />
+              </View>
             </View>
-          </View>
+          )}
         </LinearGradient>
       </ImageBackground>
 
-      {/* Vertical Prayer Times Timeline */}
-
-      <View style={styles.prayerTimelineContainer}>
+      {/* Horizontal Prayer Times Row */}
+      <View style={styles.prayersRowContainer}>
         <ScrollView
           ref={scrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+          contentContainerStyle={styles.prayersScrollContent}
         >
-          {prayerData && prayers.map((prayer, index) => {
-            const isNext = nextPrayer?.name === prayer;
-            const time = prayerData.timings[prayer];
-            const prayerInfo = getPrayerName(prayer);
-            const color = PRAYER_COLORS[prayer];
+          {prayerData &&
+            prayers.map((prayer) => {
+              const isNext = nextPrayer?.name === prayer;
+              const time = prayerData.timings[prayer];
+              const prayerInfo = getPrayerName(prayer);
+              const color = PRAYER_COLORS[prayer];
 
-            return (
-              <View
-                key={prayer}
-                style={[
-                  styles.prayerColumn,
-                  { backgroundColor: colors.card, borderColor: colors.cardBorder },
-                  isNext && [styles.prayerColumnActive, { borderColor: colors.brandGold }]
-                ]}
-              >
-                <Ionicons
-                  name={PRAYER_ICONS[prayer] as any}
-                  size={28}
-                  color={isNext ? colors.brandGold : color}
-                  style={{ marginBottom: 12 }}
-                />
-                <Text
+              return (
+                <View
+                  key={prayer}
                   style={[
-                    styles.prayerColTime,
-                    { color: isNext ? colors.brandGold : colors.text },
+                    styles.prayerColumn,
+                    isNext && styles.prayerColumnActive,
                   ]}
                 >
-                  {formatTimeTo12Hour(time)}
-                </Text>
-                <Text
-                  style={[
-                    styles.prayerColName,
-                    { color: isNext ? colors.text : colors.textSecondary },
-                  ]}
-                >
-                  {prayerInfo.name}
-                </Text>
-                {isNext && (
-                  <View
-                    style={[
-                      styles.activeDot,
-                      { backgroundColor: colors.brandGold },
-                    ]}
+                  <Ionicons
+                    name={PRAYER_ICONS[prayer] as any}
+                    size={22}
+                    color={isNext ? colors.white : color}
+                    style={{ marginBottom: 8 }}
                   />
-                )}
-              </View>
-            );
-          })}
+                  <Text
+                    style={[
+                      styles.prayerColTime,
+                      { color: isNext ? colors.white : colors.textSecondary },
+                    ]}
+                  >
+                    {formatTimeTo12Hour(time)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.prayerColName,
+                      { color: isNext ? colors.brandGold : colors.textMuted },
+                    ]}
+                  >
+                    {prayerInfo.name}
+                  </Text>
+                  {isNext && (
+                    <View
+                      style={[
+                        styles.activeDot,
+                        { backgroundColor: colors.brandGold },
+                      ]}
+                    />
+                  )}
+                </View>
+              );
+            })}
         </ScrollView>
       </View>
 
       {/* Na ndiqni në Telegram / YouTube Promotional Banner */}
-      {/* <TouchableOpacity
+      <TouchableOpacity
         style={styles.promoBanner}
-        onPress={() => void openExternalUrl("https://www.youtube.com/@ThirrjaIslame")
-        }
+        onPress={() => void openExternalUrl("https://www.youtube.com/@ThirrjaIslame")}
         activeOpacity={0.9}
       >
         <ImageBackground
@@ -539,15 +562,14 @@ export default function PrayerTimesScreen() {
             </Text>
           </LinearGradient>
         </ImageBackground>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
 
       {/* Quick Action Cards */}
       <TouchableOpacity
-        style={
-          [
-            styles.actionCard,
-            { backgroundColor: colors.card, borderColor: colors.cardBorder },
-          ]}
+        style={[
+          styles.actionCard,
+          { backgroundColor: colors.card, borderColor: colors.cardBorder },
+        ]}
         onPress={() => router.push("/qibla" as any)}
         activeOpacity={0.8}
       >
@@ -633,93 +655,6 @@ export default function PrayerTimesScreen() {
 }
 
 const styles = StyleSheet.create({
-  circularDialWrapper: {
-    alignItems: 'center',
-    marginVertical: 20,
-    marginTop: -20, // pull up slightly into the gradient
-  },
-  dialRing: {
-    width: 280,
-    height: 280,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  dialLogoInner: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    opacity: 0.35,
-  },
-  dialCityText: {
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  dialTimeRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  dialTimeMain: {
-    fontSize: 64,
-    fontWeight: '900',
-    letterSpacing: -1,
-    fontVariant: ['tabular-nums'],
-    lineHeight: 70,
-  },
-  dialTimeSec: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginTop: 8,
-    marginLeft: 4,
-    fontVariant: ['tabular-nums'],
-  },
-  dialNextLabel: {
-    fontSize: 15,
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  dialNextName: {
-    fontWeight: '800',
-    fontSize: 16,
-  },
-
-  prayerTimelineContainer: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  prayerColumn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    minWidth: 140, // Makes them have same standard width for consistency
-  },
-  prayerColumnActive: {
-    borderWidth: 1.5,
-    backgroundColor: 'rgba(212,175,55,0.08)',
-  },
-  prayerColTime: {
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 4,
-    fontVariant: ['tabular-nums'],
-  },
-  prayerColName: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  activeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 8,
-  },
-
   container: {
     flex: 1,
   },
@@ -888,7 +823,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 16,
-    minWidth: 110,
+    minWidth: 70,
   },
   prayerColumnActive: {
     backgroundColor: "rgba(212,175,55,0.1)",
@@ -915,7 +850,7 @@ const styles = StyleSheet.create({
   // Promo Banner (YouTube)
   promoBanner: {
     marginHorizontal: 20,
-    marginTop: 20,
+    marginTop: 10,
     height: 140,
     borderRadius: 16,
     overflow: "hidden",
@@ -1039,3 +974,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
 });
+
+*/
