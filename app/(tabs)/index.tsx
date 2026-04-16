@@ -421,17 +421,17 @@ export default function PrayerTimesScreen() {
                 resizeMode="contain"
               />
 
-              <Text style={[styles.dialCityText, { color: 'rgba(255,255,255,0.8)' }]}>
+              <Text style={[styles.dialCityText, { color: colors.textSecondary }]}>
                 {getCityDisplayName(selectedCity, language)}
               </Text>
 
               <View style={styles.dialTimeRow}>
-                <Text style={[styles.dialTimeMain, { color: '#FFFFFF' }]}>{hoursMins}</Text>
-                <Text style={[styles.dialTimeSec, { color: 'rgba(255,255,255,0.8)' }]}>{seconds}</Text>
+                <Text style={[styles.dialTimeMain, { color: colors.text }]}>{hoursMins}</Text>
+                <Text style={[styles.dialTimeSec, { color: colors.textSecondary }]}>{seconds}</Text>
               </View>
 
               {nextPrayer && (
-                <Text style={[styles.dialNextLabel, { color: 'rgba(255,255,255,0.8)' }]}>
+                <Text style={[styles.dialNextLabel, { color: colors.textSecondary }]}>
                   {language === "sq" ? "deri në" : language === "tr" ? "kadar" : "до"}{" "}
                   <Text style={[styles.dialNextName, { color: colors.brandGold }]}>
                     {getPrayerName(nextPrayer.name).name}
