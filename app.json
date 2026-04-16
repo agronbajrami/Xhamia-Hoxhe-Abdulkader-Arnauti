@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.takvim.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Takvim uses your location to show the Qibla direction for your current position."
+        "NSLocationWhenInUseUsageDescription": "Takvim uses your location to show the Qibla direction for your current position.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
