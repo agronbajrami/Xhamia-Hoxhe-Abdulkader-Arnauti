@@ -8,6 +8,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
+import { requestPermissions, reschedulePrayerNotifications } from '@/services/notifications';
 
 import CustomSplashScreen from '@/components/CustomSplashScreen';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -40,6 +41,14 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      // Request notification permissions then schedule prayer notifications
+      requestPermissions()
+        .then((granted) => {
+          if (granted) {
+            return reschedulePrayerNotifications();
+          }
+        })
+        .catch((e) => console.warn('Notification setup failed:', e));
     }
   }, [loaded]);
 

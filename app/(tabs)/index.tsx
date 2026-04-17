@@ -331,9 +331,6 @@ export default function PrayerTimesScreen() {
                   {t.arnautiMosque}
                 </Text>
               </View>
-              <Text style={[styles.headerTitle, { color: colors.text }]}>
-                {t.home}
-              </Text>
               {prayerData && hasHijriDate && (
                 <Text style={styles.hijriDate}>
                   {prayerData.date.hijri.day}{" "}
@@ -431,12 +428,23 @@ export default function PrayerTimesScreen() {
               </View>
 
               {nextPrayer && (
-                <Text style={[styles.dialNextLabel, { color: colors.textSecondary }]}>
-                  {language === "sq" ? "deri në" : language === "tr" ? "kadar" : "до"}{" "}
-                  <Text style={[styles.dialNextName, { color: colors.brandGold }]}>
-                    {getPrayerName(nextPrayer.name).name}
+                <View style={styles.dialNextContainer}>
+                  <Text style={[styles.dialNextLabel, { color: colors.textSecondary }]}>
+                    {language === "sq" ? "deri në" : language === "tr" ? "kadar" : "до"}{" "}
+                    <Text style={[styles.dialNextName, { color: colors.brandGold }]}>
+                      {getPrayerName(nextPrayer.name).name}
+                    </Text>
                   </Text>
-                </Text>
+                  {countdownParts.length === 3 && (
+                    <Text style={[styles.dialMinutesLeft, { color: colors.textMuted }]}>
+                      {language === "sq"
+                        ? `${parseInt(countdownParts[0]) * 60 + parseInt(countdownParts[1])} min mbetur`
+                        : language === "tr"
+                        ? `${parseInt(countdownParts[0]) * 60 + parseInt(countdownParts[1])} dk kaldı`
+                        : `${parseInt(countdownParts[0]) * 60 + parseInt(countdownParts[1])} мин остало`}
+                    </Text>
+                  )}
+                </View>
               )}
             </View>
           </View>
@@ -647,16 +655,16 @@ const styles = StyleSheet.create({
   },
   dialLogoInner: {
     position: 'absolute',
-    width: '100%',
-    height: '100%',
-    opacity: 0.35,
+    width: 240,
+    height: 240,
+    opacity: 0.2,
   },
   dialCityText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   dialTimeRow: {
     flexDirection: 'row',
@@ -676,14 +684,23 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontVariant: ['tabular-nums'],
   },
+  dialNextContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
   dialNextLabel: {
     fontSize: 15,
-    marginTop: 8,
     fontWeight: '500',
   },
   dialNextName: {
     fontWeight: '800',
     fontSize: 16,
+  },
+  dialMinutesLeft: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
+    letterSpacing: 0.3,
   },
 
   prayerTimelineContainer: {
