@@ -7,7 +7,7 @@ interface PrayerWidgetProps {
     nextPrayer?: string | null;
 }
 
-const PRAYER_LABELS: { key: string; label: string }[] = [
+const PRAYERS: { key: string; label: string }[] = [
     { key: 'Fajr',    label: 'Sabahu'  },
     { key: 'Sunrise', label: 'Lindja'  },
     { key: 'Dhuhr',   label: 'Dreka'   },
@@ -23,19 +23,18 @@ function cleanTime(raw: string | undefined): string {
 
 export function PrayerWidget({ cityName, timings, nextPrayer }: PrayerWidgetProps) {
     const nextLabel = nextPrayer
-        ? PRAYER_LABELS.find((p) => p.key === nextPrayer)?.label ?? nextPrayer
+        ? PRAYERS.find((p) => p.key === nextPrayer)?.label ?? nextPrayer
         : null;
-    const nextTime = nextPrayer && timings ? cleanTime(timings[nextPrayer]) : null;
 
     return (
         <FlexWidget
             style={{
                 height: 'match_parent',
                 width: 'match_parent',
-                backgroundColor: '#07101C',
-                borderRadius: 28,
+                backgroundColor: '#0A1929',
+                borderRadius: 24,
                 flexDirection: 'column',
-                padding: 0,
+                padding: 16,
             }}
         >
             {/* ── Header ── */}
@@ -43,10 +42,7 @@ export function PrayerWidget({ cityName, timings, nextPrayer }: PrayerWidgetProp
                 style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    paddingHorizontal: 16,
-                    paddingTop: 14,
-                    paddingBottom: 10,
-                    borderRadius: 28,
+                    width: 'match_parent',
                 }}
             >
                 <ImageWidget
@@ -59,134 +55,106 @@ export function PrayerWidget({ cityName, timings, nextPrayer }: PrayerWidgetProp
                         text="Hoxhë Abdulkadër Arnauti"
                         style={{
                             fontSize: 13,
-                            fontFamily: 'sans-serif-bold',
+                            fontFamily: 'sans-serif-medium',
                             color: '#D4AF37',
                         }}
                     />
                     <TextWidget
                         text={cityName}
-                        style={{
-                            fontSize: 10,
-                            color: '#6B7280',
-                            fontFamily: 'sans-serif',
-                        }}
+                        style={{ fontSize: 10, color: '#6B7280' }}
                     />
                 </FlexWidget>
-                {nextLabel && nextTime ? (
-                    <FlexWidget
-                        style={{
-                            flexDirection: 'column',
-                            alignItems: 'flex-end',
-                        }}
-                    >
-                        <TextWidget
-                            text={nextLabel}
-                            style={{
-                                fontSize: 10,
-                                color: '#9CA3AF',
-                                fontFamily: 'sans-serif',
-                            }}
-                        />
-                        <TextWidget
-                            text={nextTime}
-                            style={{
-                                fontSize: 15,
-                                fontFamily: 'sans-serif-bold',
-                                color: '#D4AF37',
-                            }}
-                        />
-                    </FlexWidget>
-                ) : null}
             </FlexWidget>
 
-            {/* ── Thin gold divider ── */}
+            {/* ── Divider ── */}
             <FlexWidget
                 style={{
+                    width: 'match_parent',
                     height: 1,
-                    backgroundColor: '#1F2937',
-                    marginHorizontal: 14,
+                    backgroundColor: '#1E3A5F',
+                    marginTop: 12,
                     marginBottom: 8,
                 }}
             />
 
-            {/* ── Prayer Times: 2 columns × 3 rows ── */}
+            {/* ── Prayer List ── */}
             {timings ? (
                 <FlexWidget
                     style={{
                         flexDirection: 'column',
+                        width: 'match_parent',
                         flex: 1,
-                        paddingHorizontal: 10,
-                        paddingBottom: 12,
+                        justifyContent: 'space-evenly',
                     }}
                 >
-                    {[0, 2, 4].map((startIndex) => (
-                        <FlexWidget
-                            key={startIndex}
-                            style={{
-                                flexDirection: 'row',
-                                flex: 1,
-                                marginBottom: startIndex < 4 ? 6 : 0,
-                            }}
-                        >
-                            {PRAYER_LABELS.slice(startIndex, startIndex + 2).map((prayer) => {
-                                const isNext = nextPrayer === prayer.key;
-                                return (
-                                    <FlexWidget
-                                        key={prayer.key}
+                    {PRAYERS.map((prayer) => {
+                        const isNext = nextPrayer === prayer.key;
+                        return (
+                            <FlexWidget
+                                key={prayer.key}
+                                style={{
+                                    flexDirection: 'row',
+                                    width: 'match_parent',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    backgroundColor: isNext ? '#162D4A' : 'transparent',
+                                    borderRadius: 12,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 8,
+                                    borderWidth: isNext ? 1 : 0,
+                                    borderColor: isNext ? 'rgba(212,175,55,0.4)' : 'transparent',
+                                }}
+                            >
+                                <FlexWidget
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    {isNext && (
+                                        <TextWidget
+                                            text="▸"
+                                            style={{
+                                                fontSize: 12,
+                                                color: '#D4AF37',
+                                                marginRight: 6,
+                                            }}
+                                        />
+                                    )}
+                                    <TextWidget
+                                        text={prayer.label}
                                         style={{
-                                            flex: 1,
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            backgroundColor: isNext
-                                                ? 'rgba(212,175,55,0.13)'
-                                                : '#0E1E2E',
-                                            borderRadius: 16,
-                                            marginHorizontal: 4,
-                                            paddingVertical: 8,
-                                            borderWidth: isNext ? 1 : 0,
-                                            borderColor: isNext ? '#D4AF37' : 'transparent',
+                                            fontSize: 13,
+                                            color: isNext ? '#D4AF37' : '#94A3B8',
+                                            fontFamily: isNext
+                                                ? 'sans-serif-medium'
+                                                : 'sans-serif',
                                         }}
-                                    >
-                                        <TextWidget
-                                            text={prayer.label}
-                                            style={{
-                                                fontSize: 10,
-                                                color: isNext ? '#D4AF37' : '#6B7280',
-                                                fontFamily: isNext
-                                                    ? 'sans-serif-medium'
-                                                    : 'sans-serif',
-                                            }}
-                                        />
-                                        <TextWidget
-                                            text={cleanTime(timings[prayer.key])}
-                                            style={{
-                                                fontSize: 15,
-                                                fontFamily: 'sans-serif-bold',
-                                                color: isNext ? '#FFFFFF' : '#CBD5E1',
-                                                marginTop: 2,
-                                            }}
-                                        />
-                                        {isNext && (
-                                            <TextWidget
-                                                text="▶"
-                                                style={{
-                                                    fontSize: 7,
-                                                    color: '#D4AF37',
-                                                    marginTop: 3,
-                                                }}
-                                            />
-                                        )}
-                                    </FlexWidget>
-                                );
-                            })}
-                        </FlexWidget>
-                    ))}
+                                    />
+                                </FlexWidget>
+                                <TextWidget
+                                    text={cleanTime(timings[prayer.key])}
+                                    style={{
+                                        fontSize: 15,
+                                        fontFamily: 'sans-serif-medium',
+                                        color: isNext ? '#FFFFFF' : '#CBD5E1',
+                                    }}
+                                />
+                            </FlexWidget>
+                        );
+                    })}
                 </FlexWidget>
             ) : (
-                <FlexWidget style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <FlexWidget
+                    style={{
+                        flex: 1,
+                        width: 'match_parent',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
                     <TextWidget
-                        text="Hap aplikacionin për kohët e namazit"
+                        text="Hap aplikacionin..."
                         style={{ color: '#6B7280', fontSize: 12 }}
                     />
                 </FlexWidget>
