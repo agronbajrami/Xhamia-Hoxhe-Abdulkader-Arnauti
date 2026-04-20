@@ -1,8 +1,42 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import type * as NotificationsType from 'expo-notifications';
 import { Platform } from 'react-native';
+import { PRAYER_NAMES_I18N } from '../constants/translations';
 import { fetchPrayerTimes, parseTimeToDate, PrayerName } from './prayerApi';
 import { getSelectedCity, getSettings, Reminder } from './storage';
+
+/** Read the saved UI language (falls back to 'sq') */
+async function getSavedLanguage(): Promise<'sq' | 'mk' | 'tr'> {
+    try {
+        const lang = await AsyncStorage.getItem('@takvim/language');
+        if (lang === 'mk' || lang === 'tr') return lang;
+    } catch { /* ignore */ }
+    return 'sq';
+}
+
+/** Build localized notification strings for a given prayer */
+function buildPrayerNotifContent(
+    prayer: PrayerName,
+    cityName: string,
+    language: 'sq' | 'mk' | 'tr'
+): { title: string; body: string } {
+    const prayerLabel = PRAYER_NAMES_I18N[prayer]?.[language] ?? prayer;
+
+    const titles: Record<'sq' | 'mk' | 'tr', string> = {
+        sq: `🕌 ${prayerLabel}`,
+        mk: `🕌 ${prayerLabel}`,
+        tr: `🕌 ${prayerLabel}`,
+    };
+
+    const bodies: Record<'sq' | 'mk' | 'tr', string> = {
+        sq: `Është koha e ${prayerLabel} në ${cityName}`,
+        mk: `Е време за ${prayerLabel} во ${cityName}`,
+        tr: `${cityName}'da ${prayerLabel} vakti girdi`,
+    };
+
+    return { title: titles[language], body: bodies[language] };
+}
 
 const isExpoGo =
     Platform.OS === 'android' &&
@@ -181,18 +215,21 @@ export async function getScheduledNotifications(): Promise<NotificationsType.Not
 }
 
 /**
- * Schedule prayer time notification
+ * Schedule prayer time notification (localized)
  */
 export async function schedulePrayerNotification(
-    prayerName: string,
+    prayerName: PrayerName,
     time: Date,
     cityName: string
 ): Promise<string | null> {
     try {
+        const language = await getSavedLanguage();
+        const { title, body } = buildPrayerNotifContent(prayerName, cityName, language);
+
         const notificationId = await Notifications.scheduleNotificationAsync({
             content: {
-                title: `${prayerName} Time`,
-                body: `It's time for ${prayerName} prayer in ${cityName}`,
+                title,
+                body,
                 data: { type: 'prayer', prayer: prayerName },
                 sound: true,
             },

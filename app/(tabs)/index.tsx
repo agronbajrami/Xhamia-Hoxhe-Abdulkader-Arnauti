@@ -435,7 +435,7 @@ export default function PrayerTimesScreen() {
                       {getPrayerName(nextPrayer.name).name}
                     </Text>
                   </Text>
-                  {countdownParts.length === 3 && (
+                  {/* {countdownParts.length === 3 && (
                     <Text style={[styles.dialMinutesLeft, { color: colors.textMuted }]}>
                       {language === "sq"
                         ? `${parseInt(countdownParts[0]) * 60 + parseInt(countdownParts[1])} min mbetur`
@@ -443,7 +443,7 @@ export default function PrayerTimesScreen() {
                         ? `${parseInt(countdownParts[0]) * 60 + parseInt(countdownParts[1])} dk kaldı`
                         : `${parseInt(countdownParts[0]) * 60 + parseInt(countdownParts[1])} мин остало`}
                     </Text>
-                  )}
+                  )} */}
                 </View>
               )}
             </View>
