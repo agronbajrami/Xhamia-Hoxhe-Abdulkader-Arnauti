@@ -88,7 +88,7 @@ export default function CustomSplashScreen({ onFinish }: { onFinish?: () => void
     return (
         <Animated.View style={[styles.container, { opacity: fadeOut }]}>
             <LinearGradient
-                colors={['#002B45', '#001A2C', '#000E1A']}
+                colors={['#001A2C', '#000E1A', '#000810']}
                 style={styles.gradient}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}

@@ -24,15 +24,15 @@ function buildPrayerNotifContent(
     const prayerLabel = PRAYER_NAMES_I18N[prayer]?.[language] ?? prayer;
 
     const titles: Record<'sq' | 'mk' | 'tr', string> = {
-        sq: `🕌 ${prayerLabel}`,
-        mk: `🕌 ${prayerLabel}`,
-        tr: `🕌 ${prayerLabel}`,
+        sq: `${prayerLabel}`,
+        mk: ` ${prayerLabel}`,
+        tr: ` ${prayerLabel}`,
     };
 
     const bodies: Record<'sq' | 'mk' | 'tr', string> = {
-        sq: `Është koha e ${prayerLabel} në ${cityName}`,
-        mk: `Е време за ${prayerLabel} во ${cityName}`,
-        tr: `${cityName}'da ${prayerLabel} vakti girdi`,
+        sq: `${prayerLabel}`,
+        mk: `${prayerLabel}`,
+        tr: `${prayerLabel}`,
     };
 
     return { title: titles[language], body: bodies[language] };

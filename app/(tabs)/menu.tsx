@@ -39,6 +39,14 @@ export default function MenuScreen() {
             description: t.donationSubtitle,
             isExternal: true,
         },
+        {
+            id: 'preview',
+            title: 'Design Preview',
+            icon: 'color-palette-outline',
+            route: '/preview',
+            color: '#8B5CF6',
+            description: 'Preview widget design & icons live',
+        },
     ];
 
     const openExternalUrl = async (url: string) => {
