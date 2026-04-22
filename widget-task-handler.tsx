@@ -1,8 +1,10 @@
 import React from 'react';
 import type { WidgetTaskHandlerProps } from 'react-native-android-widget';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PrayerWidget } from './PrayerWidget';
 import { getSelectedCity } from './services/storage';
 import { fetchPrayerTimes, PrayerName } from './services/prayerApi';
+import { Language } from '@/constants/translations';
 
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
   if (
@@ -11,6 +13,11 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
     props.widgetAction === 'WIDGET_RESIZED'
   ) {
     try {
+      const savedTheme = await AsyncStorage.getItem('@takvim/theme');
+      const theme = savedTheme === 'light' ? 'light' : 'dark';
+      const savedLanguage = await AsyncStorage.getItem('@takvim/language');
+      const language: Language =
+        savedLanguage === 'mk' || savedLanguage === 'tr' ? savedLanguage : 'sq';
       const city = await getSelectedCity();
       const now = new Date();
       const prayerTimes = await fetchPrayerTimes(city.latitude, city.longitude, now);
@@ -41,15 +48,17 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
 
       props.renderWidget(
         <PrayerWidget
-          cityName={city.name}
+          cityName={city.localizedNames?.[language] ?? city.name}
           timings={prayerTimes.timings}
           nextPrayer={nextPrayer}
+          theme={theme}
+          language={language}
         />
       );
     } catch (e) {
       console.warn('PrayerWidget failed to update', e);
       props.renderWidget(
-        <PrayerWidget cityName="Skopje" timings={null} />
+        <PrayerWidget cityName="Shkup" timings={null} theme="dark" language="sq" />
       );
     }
   }

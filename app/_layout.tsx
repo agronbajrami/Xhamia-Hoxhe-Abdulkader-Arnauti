@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
 import { requestPermissions, reschedulePrayerNotifications } from '@/services/notifications';
+import { syncPrayerWidget } from '@/services/widgetBridge';
 
 import CustomSplashScreen from '@/components/CustomSplashScreen';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -72,6 +73,11 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { isDark, colors } = useTheme();
+
+  useEffect(() => {
+    // Keep widget data in sync when app starts.
+    syncPrayerWidget().catch((e) => console.warn('Widget sync failed:', e));
+  }, []);
 
   useEffect(() => {
     if (Platform.OS === 'android') {

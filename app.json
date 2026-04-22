@@ -60,8 +60,8 @@
             {
               "name": "PrayerWidget",
               "label": "Takvim Prayers",
-              "minWidth": "320dp",
-              "minHeight": "200dp",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
               "description": "Shows daily prayer times",
               "previewImage": "./assets/images/adaptive-icon.png",
               "resizeMode": "vertical"
@@ -69,7 +69,7 @@
           ]
         }
       ],
-      "./plugins/withIosPrayerWidget"
+      "./plugins/withPrayerWidget"
     ],
     "experiments": {
       "typedRoutes": true

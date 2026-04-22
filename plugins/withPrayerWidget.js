@@ -1,4 +1,4 @@
-const { withDangerousMod, withXcodeProject, withEntitlementsPlist, withInfoPlist } = require('@expo/config-plugins');
+const { withDangerousMod, withXcodeProject, withEntitlementsPlist } = require('@expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
@@ -6,7 +6,7 @@ const WIDGET_NAME = 'TakvimWidgetExtension';
 const APP_GROUP = 'group.com.takvim.app';
 const BUNDLE_ID_SUFFIX = '.widget';
 
-function withIosPrayerWidget(config) {
+function withPrayerWidget(config) {
   // 1. Add App Group entitlement to main app
   config = withEntitlementsPlist(config, (mod) => {
     mod.modResults['com.apple.security.application-groups'] = [APP_GROUP];
@@ -19,6 +19,11 @@ function withIosPrayerWidget(config) {
     async (mod) => {
       const projectRoot = mod.modRequest.projectRoot;
       const iosPath = path.join(projectRoot, 'ios');
+      const appProjectName = fs
+        .readdirSync(iosPath)
+        .find((entry) => entry.endsWith('.xcodeproj'))
+        ?.replace('.xcodeproj', '');
+      const appSourceDir = appProjectName ? path.join(iosPath, appProjectName) : null;
       const widgetDir = path.join(iosPath, WIDGET_NAME);
 
       if (!fs.existsSync(widgetDir)) {
@@ -30,6 +35,71 @@ function withIosPrayerWidget(config) {
       const dstSwift = path.join(widgetDir, 'TakvimPrayerWidget.swift');
       if (fs.existsSync(srcSwift)) {
         fs.copyFileSync(srcSwift, dstSwift);
+      }
+
+      if (appSourceDir && fs.existsSync(appSourceDir)) {
+        const sharedGroupModule = `#import <React/RCTBridgeModule.h>
+
+@interface SharedGroupPreferences : NSObject <RCTBridgeModule>
+@end
+
+@implementation SharedGroupPreferences
+
+RCT_EXPORT_MODULE();
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
+RCT_REMAP_METHOD(setItem,
+                 setItem:(NSString *)key
+                 value:(NSString *)value
+                 appGroup:(NSString *)appGroup
+                 resolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:appGroup];
+  if (!defaults) {
+    reject(@"E_APP_GROUP", @"Failed to initialize app group defaults.", nil);
+    return;
+  }
+
+  [defaults setObject:value forKey:key];
+  BOOL success = [defaults synchronize];
+  resolve(@(success));
+}
+
+@end
+`;
+
+        const widgetKitManagerModule = `#import <React/RCTBridgeModule.h>
+#import <WidgetKit/WidgetKit.h>
+
+@interface WidgetKitManager : NSObject <RCTBridgeModule>
+@end
+
+@implementation WidgetKitManager
+
+RCT_EXPORT_MODULE();
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
+RCT_EXPORT_METHOD(reloadAllTimelines)
+{
+  if (@available(iOS 14.0, *)) {
+    [[WidgetCenter sharedCenter] reloadAllTimelines];
+  }
+}
+
+@end
+`;
+
+        fs.writeFileSync(path.join(appSourceDir, 'SharedGroupPreferences.m'), sharedGroupModule);
+        fs.writeFileSync(path.join(appSourceDir, 'WidgetKitManager.m'), widgetKitManagerModule);
       }
 
       // Create widget Info.plist
@@ -89,41 +159,49 @@ function withIosPrayerWidget(config) {
 
     // Check if target already exists
     const existingTarget = xcodeProject.pbxTargetByName(WIDGET_NAME);
-    if (existingTarget) {
-      return mod;
+    let target = existingTarget;
+    const appTarget = { uuid: '13B07F861A680F5B00A75B9A' };
+    if (!target) {
+      // Add widget extension target
+      target = xcodeProject.addTarget(
+        WIDGET_NAME,
+        'app_extension',
+        WIDGET_NAME,
+        widgetBundleId
+      );
     }
 
-    // Add widget extension target
-    const target = xcodeProject.addTarget(
-      WIDGET_NAME,
-      'app_extension',
-      WIDGET_NAME,
-      widgetBundleId
-    );
+    if (!existingTarget) {
+      // Add build phases
+      xcodeProject.addBuildPhase(
+        [`${WIDGET_NAME}/TakvimPrayerWidget.swift`],
+        'PBXSourcesBuildPhase',
+        'Sources',
+        target.uuid
+      );
 
-    // Add build phases
-    xcodeProject.addBuildPhase(
-      ['TakvimPrayerWidget.swift'],
-      'PBXSourcesBuildPhase',
-      'Sources',
-      target.uuid
-    );
+      // Add the widget group
+      const widgetGroupKey = xcodeProject.pbxCreateGroup(WIDGET_NAME, WIDGET_NAME);
+      const mainGroupKey = xcodeProject.getFirstProject().mainGroup;
+      xcodeProject.addToPbxGroup(widgetGroupKey, mainGroupKey);
 
-    // Add the widget group
-    const widgetGroupKey = xcodeProject.pbxCreateGroup(WIDGET_NAME, WIDGET_NAME);
-    const mainGroupKey = xcodeProject.getFirstProject().firstProject.mainGroup;
-    xcodeProject.addToPbxGroup(widgetGroupKey, mainGroupKey);
+      // Add files to widget group
+      xcodeProject.addFile(
+        `${WIDGET_NAME}/TakvimPrayerWidget.swift`,
+        widgetGroupKey,
+        { target: target.uuid }
+      );
+      xcodeProject.addFile(
+        `${WIDGET_NAME}/Info.plist`,
+        widgetGroupKey
+      );
+    }
 
-    // Add files to widget group
-    xcodeProject.addFile(
-      `${WIDGET_NAME}/TakvimPrayerWidget.swift`,
-      widgetGroupKey,
-      { target: target.uuid }
-    );
-    xcodeProject.addFile(
-      `${WIDGET_NAME}/Info.plist`,
-      widgetGroupKey
-    );
+    // Ensure app-level native bridge files exist in app target
+    const appName = 'HoxhAbdulkadrArnauti';
+    const mainGroupKey = '83CBB9F61A601CBA00E9B192';
+    xcodeProject.addFile(`${appName}/SharedGroupPreferences.m`, mainGroupKey, { target: appTarget.uuid });
+    xcodeProject.addFile(`${appName}/WidgetKitManager.m`, mainGroupKey, { target: appTarget.uuid });
 
     // Configure build settings for the widget target
     const configurations = xcodeProject.pbxXCBuildConfigurationSection();
@@ -155,4 +233,4 @@ function withIosPrayerWidget(config) {
   return config;
 }
 
-module.exports = withIosPrayerWidget;
+module.exports = withPrayerWidget;

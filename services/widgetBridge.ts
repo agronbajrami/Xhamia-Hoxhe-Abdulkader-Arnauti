@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform, NativeModules } from 'react-native';
 import { fetchPrayerTimes, PrayerName } from './prayerApi';
 import { getSelectedCity } from './storage';
+import { Language, PRAYER_NAMES_I18N } from '@/constants/translations';
 
 const APP_GROUP = 'group.com.takvim.app';
 
@@ -13,14 +14,12 @@ async function writeToAppGroup(key: string, value: string): Promise<void> {
     if (Platform.OS !== 'ios') return;
 
     try {
-        // Use the RNCAsyncStorage native module to write to suite
-        const { RNCAsyncStorage } = NativeModules;
-        // Fallback: write via expo-shared-preferences or native bridge
-        // For now use a simple native call if available
         if (NativeModules.SharedGroupPreferences) {
             await NativeModules.SharedGroupPreferences.setItem(key, value, APP_GROUP);
+        } else if (NativeModules.RNSharedGroupPreferences) {
+            await NativeModules.RNSharedGroupPreferences.setItem(key, value, APP_GROUP);
         } else {
-            // Store locally so the config plugin bridge can pick it up
+            // Local fallback only; widget extension cannot read this.
             await AsyncStorage.setItem(`@widget:${key}`, value);
         }
     } catch (e) {
@@ -37,22 +36,31 @@ export async function syncPrayerWidget(): Promise<void> {
         const city = await getSelectedCity();
         const now = new Date();
         const data = await fetchPrayerTimes(city.latitude, city.longitude, now);
+        const savedTheme = await AsyncStorage.getItem('@takvim/theme');
+        const theme = savedTheme === 'light' ? 'light' : 'dark';
+        const savedLanguage = await AsyncStorage.getItem('@takvim/language');
+        const language: Language =
+            savedLanguage === 'mk' || savedLanguage === 'tr' ? savedLanguage : 'sq';
 
         const prayerNames: PrayerName[] = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
         const prayers = prayerNames.map((name) => ({
-            name,
+            key: name,
+            name: PRAYER_NAMES_I18N[name][language] ?? name,
             time: data.timings[name] || '--:--',
         }));
 
         const widgetData = JSON.stringify({
-            cityName: city.name,
+            cityName: city.localizedNames?.[language] ?? city.name,
             date: now.toISOString().split('T')[0],
             prayers,
+            theme,
+            language,
             lastUpdated: Date.now(),
         });
 
         if (Platform.OS === 'ios') {
             await writeToAppGroup('prayerWidgetData', widgetData);
+            await reloadIOSWidget();
         }
 
         // Also store for Android widget
